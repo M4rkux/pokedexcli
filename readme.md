@@ -1,7 +1,7 @@
 # Pokedex CLI
 
-This project is a CLI program made in [Go](https://go.dev/).
-<br/>It will work as a Pokedex, where you can explore areas, list pokemons, catch them and complete your pokedex.
+This project is a CLI program made in [Go](https://go.dev/) and it's part of the [boot.dev](https://www.boot.dev/) course.
+<br/>Features: you can explore areas, list pokemons, catch them and complete your pokedex.
 <br>It uses the [pokedexapi](https://pokeapi.co/) and stores some information in cache.
 
 The program has the following commands
