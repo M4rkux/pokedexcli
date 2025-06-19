@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
 )
@@ -20,7 +21,12 @@ type cliCommand struct {
 	config      Config
 }
 
+var currentLocation string
+var pokedex map[string]Pokemon
+
 func main() {
+	currentLocation = "canalave-city-area"
+	pokedex = make(map[string]Pokemon)
 	var commands map[string]cliCommand
 	commands = map[string]cliCommand{
 		"exit": {
@@ -56,7 +62,7 @@ func main() {
 			config: Config{},
 		},
 		"explore": {
-			name:        "explore",
+			name:        "explore <area>",
 			description: "Explore the area and list the Pokemons",
 			callback: func(input []string) error {
 				if len(input) < 2 {
@@ -65,6 +71,16 @@ func main() {
 				return commandExplore(input[1])
 			},
 			config: Config{},
+		},
+		"catch": {
+			name:        "catch <pokemon>",
+			description: "Throw a pokeball and tries to catch a pokemon",
+			callback: func(input []string) error {
+				if len(input) < 2 {
+					return errors.New("Missing required parameter (pokemon)")
+				}
+				return commandCatch(input[1])
+			},
 		},
 	}
 
@@ -166,10 +182,48 @@ func commandExplore(area string) error {
 		return err
 	}
 
+	currentLocation = area
 	fmt.Println("Found Pokemon:")
 
 	for _, pokemonEncounter := range pokemonEncounters {
 		fmt.Println(" -", pokemonEncounter.Pokemon.Name)
+	}
+
+	return nil
+}
+
+func commandCatch(pokemonName string) error {
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
+
+	/*pokemonLocationArea, err := GetPokemonLocationArea(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	isInArea := false
+	for _, locationArea := range pokemonLocationArea.LocationArea {
+		if locationArea.Name == currentLocation {
+			isInArea = true
+			break
+		}
+	}
+
+	if !isInArea {
+		return errors.New("pokemon not in area")
+	}*/
+
+	pokemon, err := GetPokemon(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	t := rand.Intn(100)
+
+	if t > 40 {
+		pokedex[pokemonName] = pokemon
+		fmt.Printf("%s was caught!\n", pokemonName)
+	} else {
+		fmt.Printf("%s escaped!\n", pokemonName)
 	}
 
 	return nil
