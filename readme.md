@@ -11,6 +11,7 @@ The program has the following commands
 - `map`
 - `mapb`
 - `explore <area>`
+- `catch <pokemon>`
 
 ## Run the program
 
