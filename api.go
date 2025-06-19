@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -101,7 +100,7 @@ func GetListLocationAreas(paramUrl string) (ListLocationAreas, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return ListLocationAreas{}, errors.New(fmt.Sprintf("Request failed with status: %v", resp.Status))
+		return ListLocationAreas{}, fmt.Errorf("Request failed with status: %v", resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -137,7 +136,7 @@ func GetListPokemonsInArea(area string) ([]PokemonEncounter, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return []PokemonEncounter{}, errors.New(fmt.Sprintf("Request failed with status: %v", resp.Status))
+		return []PokemonEncounter{}, fmt.Errorf("Request failed with status: %v", resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)

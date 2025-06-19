@@ -107,7 +107,7 @@ func commandHelp(commands *map[string]cliCommand) error {
 	fmt.Println("Usage:")
 	fmt.Println()
 	for _, cmd := range *commands {
-		fmt.Println(fmt.Sprintf("%s: %s", cmd.name, cmd.description))
+		fmt.Printf("%s: %s\n", cmd.name, cmd.description)
 	}
 	return nil
 }
@@ -159,7 +159,7 @@ func commandMapBack(commands *map[string]cliCommand) error {
 
 func commandExplore(area string) error {
 
-	fmt.Println(fmt.Sprintf("Exploring %s...", area))
+	fmt.Printf("Exploring %s...\n", area)
 
 	pokemonEncounters, err := GetListPokemonsInArea(area)
 	if err != nil {
