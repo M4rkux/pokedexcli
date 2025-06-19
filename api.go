@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"time"
+
+	"github.com/m4rkux/pokedexcli/internal"
 )
 
 const base_url = "https://pokeapi.co/api/v2/"
@@ -17,57 +21,53 @@ type Language struct {
 	names    []Name
 }
 
-type Name struct {
-	name     string
-	language Language
-}
-
-type EncounterMethod struct {
-	id    int
-	name  string
-	order int
-	names []Name
-}
-
-type Generation struct{}
-
-type MoveLearnMethod struct{}
-
-type Pokedex struct{}
-
-type VersionGroup struct {
-	id                 int
-	name               string
-	order              int
-	generation         Generation
-	move_learn_methods []MoveLearnMethod
-	pokedexes          []Pokedex
-	regions            []struct{}
-	versions           []Version
-}
-
-type Version struct {
-	id            int
-	name          string
-	names         []Name
-	version_group VersionGroup
-}
-
-type EncounterVersionDetails struct {
-	rate    int
-	version Version
+type NamedAPIResource struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
 type EncounterMethodRate struct {
-	encounter_method []EncounterMethod
-	version_details  []EncounterVersionDetails
+	EncounterMethod NamedAPIResource         `json:"encounter_method"`
+	VersionDetails  []EncounterVersionDetail `json:"version_details"`
+}
+
+type EncounterVersionDetail struct {
+	Rate    int              `json:"rate"`
+	Version NamedAPIResource `json:"version"`
+}
+
+type Name struct {
+	Language NamedAPIResource `json:"language"`
+	Name     string           `json:"name"`
+}
+
+type PokemonEncounter struct {
+	Pokemon        NamedAPIResource          `json:"pokemon"`
+	VersionDetails []PokemonEncounterVersion `json:"version_details"`
+}
+
+type PokemonEncounterVersion struct {
+	MaxChance        int               `json:"max_chance"`
+	EncounterDetails []EncounterDetail `json:"encounter_details"`
+	Version          NamedAPIResource  `json:"version"`
+}
+
+type EncounterDetail struct {
+	Chance          int                `json:"chance"`
+	ConditionValues []NamedAPIResource `json:"condition_values"`
+	MaxLevel        int                `json:"max_level"`
+	Method          NamedAPIResource   `json:"method"`
+	MinLevel        int                `json:"min_level"`
 }
 
 type LocationArea struct {
-	Id                   int      `json:"id"`
-	Name                 string   `json:"name"`
-	GameIndex            int      `json:"game_index"`
-	EncounterMethodRates struct{} `json:"encounter_method_rates"`
+	EncounterMethodRates []EncounterMethodRate `json:"encounter_method_rates"`
+	GameIndex            int                   `json:"game_index"`
+	ID                   int                   `json:"id"`
+	Location             NamedAPIResource      `json:"location"`
+	Name                 string                `json:"name"`
+	Names                []Name                `json:"names"`
+	PokemonEncounters    []PokemonEncounter    `json:"pokemon_encounters"`
 }
 
 type ListLocationAreas struct {
@@ -77,12 +77,21 @@ type ListLocationAreas struct {
 	Results  []LocationArea `json:"results"`
 }
 
+var cache = internal.NewCache(5 * time.Second)
+
 func GetListLocationAreas(paramUrl string) (ListLocationAreas, error) {
 	var url string
 	if paramUrl != "" {
 		url = paramUrl
 	} else {
 		url = base_url + "location-area/"
+	}
+
+	var locationAreas ListLocationAreas
+
+	if data, ok := cache.Get(url); ok {
+		json.Unmarshal(data, &locationAreas)
+		return locationAreas, nil
 	}
 
 	resp, err := http.Get(url)
@@ -95,12 +104,53 @@ func GetListLocationAreas(paramUrl string) (ListLocationAreas, error) {
 		return ListLocationAreas{}, errors.New(fmt.Sprintf("Request failed with status: %v", resp.Status))
 	}
 
-	var locationAreas ListLocationAreas
-	err = json.NewDecoder(resp.Body).Decode(&locationAreas)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ListLocationAreas{}, err
+	}
 
+	cache.Add(url, body)
+
+	err = json.Unmarshal(body, &locationAreas)
 	if err != nil {
 		return ListLocationAreas{}, err
 	}
 
 	return locationAreas, nil
+}
+
+func GetListPokemonsInArea(area string) ([]PokemonEncounter, error) {
+
+	url := base_url + "location-area/" + area
+
+	var locationArea LocationArea
+
+	if data, ok := cache.Get(url); ok {
+		json.Unmarshal(data, &locationArea)
+		return locationArea.PokemonEncounters, nil
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return []PokemonEncounter{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return []PokemonEncounter{}, errors.New(fmt.Sprintf("Request failed with status: %v", resp.Status))
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []PokemonEncounter{}, err
+	}
+
+	cache.Add(url, body)
+
+	err = json.Unmarshal(body, &locationArea)
+	if err != nil {
+		return []PokemonEncounter{}, err
+	}
+
+	return locationArea.PokemonEncounters, nil
 }

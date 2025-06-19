@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -15,7 +16,7 @@ type Config struct {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func([]string) error
 	config      Config
 }
 
@@ -25,13 +26,15 @@ func main() {
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
-			callback:    commandExit,
-			config:      Config{},
+			callback: func(input []string) error {
+				return commandExit()
+			},
+			config: Config{},
 		},
 		"help": {
 			name:        "help",
 			description: "Displays a help message",
-			callback: func() error {
+			callback: func(input []string) error {
 				return commandHelp(&commands)
 			},
 			config: Config{},
@@ -39,7 +42,7 @@ func main() {
 		"map": {
 			name:        "map",
 			description: "Displays the names of the location areas",
-			callback: func() error {
+			callback: func(input []string) error {
 				return commandMap(&commands)
 			},
 			config: Config{},
@@ -47,8 +50,19 @@ func main() {
 		"mapb": {
 			name:        "mapb",
 			description: "Displays the names of the location areas (previous)",
-			callback: func() error {
+			callback: func(input []string) error {
 				return commandMapBack(&commands)
+			},
+			config: Config{},
+		},
+		"explore": {
+			name:        "explore",
+			description: "Explore the area and list the Pokemons",
+			callback: func(input []string) error {
+				if len(input) < 2 {
+					return errors.New("Missing required parameter (area)")
+				}
+				return commandExplore(input[1])
 			},
 			config: Config{},
 		},
@@ -65,7 +79,10 @@ func main() {
 		}
 
 		if command, ok := commands[input[0]]; ok {
-			command.callback()
+			err := command.callback(input)
+			if err != nil {
+				fmt.Println(err)
+			}
 		} else {
 			fmt.Println("Unknown command")
 		}
@@ -135,6 +152,24 @@ func commandMapBack(commands *map[string]cliCommand) error {
 
 	for _, locationArea := range locationAreas.Results {
 		fmt.Println(locationArea.Name)
+	}
+
+	return nil
+}
+
+func commandExplore(area string) error {
+
+	fmt.Println(fmt.Sprintf("Exploring %s...", area))
+
+	pokemonEncounters, err := GetListPokemonsInArea(area)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Found Pokemon:")
+
+	for _, pokemonEncounter := range pokemonEncounters {
+		fmt.Println(" -", pokemonEncounter.Pokemon.Name)
 	}
 
 	return nil
