@@ -94,6 +94,14 @@ func main() {
 			},
 			config: Config{},
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Shows the list of pokemons you already got",
+			callback: func(input []string) error {
+				return commandPokedex()
+			},
+			config: Config{},
+		},
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -259,6 +267,20 @@ func commandInspect(pokemonName string) error {
 	fmt.Println("Types:")
 	for _, t := range pokemon.Types {
 		fmt.Printf("    - %s\n", t.Type.Name)
+	}
+
+	return nil
+}
+
+func commandPokedex() error {
+	if len(pokedex) == 0 {
+		fmt.Println("Your pokedex is empty")
+		return nil
+	}
+
+	fmt.Println("Your Pokedex:")
+	for pokemonName := range pokedex {
+		fmt.Printf(" - %s\n", pokemonName)
 	}
 
 	return nil

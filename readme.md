@@ -13,6 +13,7 @@ The program has the following commands
 - `explore <area>`
 - `catch <pokemon>`
 - `inspect <pokemon>`
+- `pokedex`
 
 ## Run the program
 
