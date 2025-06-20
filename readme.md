@@ -12,6 +12,7 @@ The program has the following commands
 - `mapb`
 - `explore <area>`
 - `catch <pokemon>`
+- `inspect <pokemon>`
 
 ## Run the program
 

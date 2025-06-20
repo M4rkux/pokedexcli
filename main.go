@@ -81,6 +81,18 @@ func main() {
 				}
 				return commandCatch(input[1])
 			},
+			config: Config{},
+		},
+		"inspect": {
+			name:        "inspect <pokemon>",
+			description: "Shows the name, height, weight, stats and type(s) of the Pokemon",
+			callback: func(input []string) error {
+				if len(input) < 2 {
+					return errors.New("Missing required parameter (pokemon)")
+				}
+				return commandInspect(input[1])
+			},
+			config: Config{},
 		},
 	}
 
@@ -224,6 +236,29 @@ func commandCatch(pokemonName string) error {
 		fmt.Printf("%s was caught!\n", pokemonName)
 	} else {
 		fmt.Printf("%s escaped!\n", pokemonName)
+	}
+
+	return nil
+}
+
+func commandInspect(pokemonName string) error {
+	pokemon, ok := pokedex[pokemonName]
+	if !ok {
+		return fmt.Errorf("%s is not caught yet!", pokemonName)
+	}
+
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %v\n", pokemon.Height)
+	fmt.Printf("Weight: %v\n", pokemon.Weight)
+
+	fmt.Println("Stats:")
+	for _, stat := range pokemon.Stats {
+		fmt.Printf("    -%s: %v\n", stat.Stat.Name, stat.BaseStat)
+	}
+
+	fmt.Println("Types:")
+	for _, t := range pokemon.Types {
+		fmt.Printf("    - %s\n", t.Type.Name)
 	}
 
 	return nil
