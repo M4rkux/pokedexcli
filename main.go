@@ -237,9 +237,10 @@ func commandCatch(pokemonName string) error {
 		return err
 	}
 
-	t := rand.Intn(100)
+	captureProbability := rand.Intn(100)
+	chance := GetChanceByBaseExperience(pokemon.BaseExperience)
 
-	if t > 40 {
+	if captureProbability > chance {
 		pokedex[pokemonName] = pokemon
 		fmt.Printf("%s was caught!\n", pokemonName)
 	} else {
@@ -284,4 +285,13 @@ func commandPokedex() error {
 	}
 
 	return nil
+}
+
+func GetChanceByBaseExperience(baseExperience int) int {
+	if baseExperience < 100 {
+		return 80
+	} else if baseExperience < 200 {
+		return 60
+	}
+	return 40
 }
