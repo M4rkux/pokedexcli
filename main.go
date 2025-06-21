@@ -213,16 +213,14 @@ func commandExplore(area string) error {
 }
 
 func commandCatch(pokemonName string) error {
-	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
-
-	/*pokemonLocationArea, err := GetPokemonLocationArea(pokemonName)
+	pokemonLocationArea, err := GetPokemonLocationArea(pokemonName)
 	if err != nil {
 		return err
 	}
 
 	isInArea := false
-	for _, locationArea := range pokemonLocationArea.LocationArea {
-		if locationArea.Name == currentLocation {
+	for _, locationArea := range pokemonLocationArea {
+		if locationArea.LocationArea.Name == currentLocation {
 			isInArea = true
 			break
 		}
@@ -230,7 +228,9 @@ func commandCatch(pokemonName string) error {
 
 	if !isInArea {
 		return errors.New("pokemon not in area")
-	}*/
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemonName)
 
 	pokemon, err := GetPokemon(pokemonName)
 	if err != nil {

@@ -70,8 +70,8 @@ type LocationArea struct {
 }
 
 type LocationAreaEncounter struct {
-	LocationArea   []LocationArea `json:"location_area"`
-	VersionDetails interface{}    `json:"version_details"`
+	LocationArea   LocationArea `json:"location_area"`
+	VersionDetails interface{}  `json:"version_details"`
 }
 
 type ListLocationAreas struct {
@@ -233,12 +233,12 @@ func GetListPokemonsInArea(area string) ([]PokemonEncounter, error) {
 	return locationArea.PokemonEncounters, nil
 }
 
-func GetPokemonLocationArea(pokemonName string) (LocationAreaEncounter, error) {
+func GetPokemonLocationArea(pokemonName string) ([]LocationAreaEncounter, error) {
 	url := base_url + "pokemon/" + pokemonName + "/encounters"
 
-	locationAreaEncounter, err := callEndpoint[LocationAreaEncounter](url)
+	locationAreaEncounter, err := callEndpoint[[]LocationAreaEncounter](url)
 	if err != nil {
-		return LocationAreaEncounter{}, nil
+		return []LocationAreaEncounter{}, nil
 	}
 
 	return locationAreaEncounter, nil
